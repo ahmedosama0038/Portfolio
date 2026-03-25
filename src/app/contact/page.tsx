@@ -1,273 +1,231 @@
 "use client";
 import { useRef, useState, useEffect } from "react";
-import { motion, useInView, useMotionValue, useSpring, useTransform } from "framer-motion";
+import { motion, AnimatePresence, useSpring, useMotionValue, useTransform } from "framer-motion";
+import confetti from 'canvas-confetti';
 
-// ══════════════════════════════════════════════════════════════
-//  ✏️  CONFIG
-// ══════════════════════════════════════════════════════════════
 const CONFIG = {
   formEndpoint: "https://formcarry.com/s/_Wt6RDf4nbx",
-  email:    "ah.osama303@gmail.com",
-  phone:    "+20 102 124 5010",
+  email: "ah.osama303@gmail.com",
+  phone: "+20 102 124 5010",
   whatsapp: "https://wa.me/201021245010",
-  github:   "https://github.com/ahmedosama0038",
   linkedin: "https://www.linkedin.com/in/ahmed-osama-6642a9397/",
+  instagram: "https://www.instagram.com/__a7med__72",
 };
 
-// ── Magnetic Button ───────────────────────────────────────────
-function MagneticBtn({ children, href, style }: { children: React.ReactNode; href: string; style?: React.CSSProperties }) {
-  const ref = useRef<HTMLAnchorElement>(null);
-  const x = useSpring(0, { stiffness: 200, damping: 18 });
-  const y = useSpring(0, { stiffness: 200, damping: 18 });
+// ─── 1. Magnetic & Tilt Wrapper (The Secret Sauce) ───────────
+function InteractiveWrapper({ children }: { children: React.ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
 
-  const handleMove = (e: React.MouseEvent) => {
+  const mouseXSpring = useSpring(x);
+  const mouseYSpring = useSpring(y);
+
+  const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], ["10deg", "-10deg"]);
+  const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ["-10deg", "10deg"]);
+
+  const handleMouseMove = (e: React.MouseEvent) => {
     if (!ref.current) return;
-    const r = ref.current.getBoundingClientRect();
-    x.set((e.clientX - r.left - r.width / 2) * 0.35);
-    y.set((e.clientY - r.top - r.height / 2) * 0.35);
+    const rect = ref.current.getBoundingClientRect();
+    const width = rect.width;
+    const height = rect.height;
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    x.set(mouseX / width - 0.5);
+    y.set(mouseY / height - 0.5);
   };
-  const handleLeave = () => { x.set(0); y.set(0); };
+
+  const handleMouseLeave = () => { x.set(0); y.set(0); };
 
   return (
-    <motion.a
+    <motion.div
       ref={ref}
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      style={{ x, y, ...style, display: "inline-flex", textDecoration: "none" }}
-      onMouseMove={handleMove}
-      onMouseLeave={handleLeave}
-      whileHover={{ scale: 1.08 }}
-      whileTap={{ scale: 0.95 }}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
+      className="relative w-full"
     >
       {children}
-    </motion.a>
+    </motion.div>
   );
 }
 
-// ── Animated Input ─────────────────────────────────────────────
-function FloatInput({
-  label, name, type = "text", required = false, textarea = false,
-}: {
-  label: string; name: string; type?: string; required?: boolean; textarea?: boolean;
-}) {
+// ─── 2. Professional Input Field ──────────────────────────────
+function UltraInput({ label, name, type = "text", textarea = false, error }: any) {
   const [focused, setFocused] = useState(false);
   const [hasValue, setHasValue] = useState(false);
-  const isUp = focused || hasValue;
-
-  const inputStyles: React.CSSProperties = {
-    width: "100%", 
-    background: "rgba(255,255,255,0.03)",
-    border: `1px solid ${focused ? "rgba(0,212,255,0.5)" : "rgba(255,255,255,0.08)"}`,
-    borderRadius: 14, 
-    padding: textarea ? "28px 16px 12px" : "22px 16px 10px",
-    color: "#fff", 
-    fontSize: 15, 
-    outline: "none",
-    fontFamily: "inherit",
-    transition: "all 0.3s ease",
-    boxShadow: focused ? "0 0 0 4px rgba(0,212,255,0.05)" : "none",
-  };
 
   return (
-    <div style={{ position: "relative", marginBottom: 20, width: "100%" }}>
-      {textarea ? (
-        <textarea
-          name={name}
-          required={required}
-          rows={4}
-          onFocus={() => setFocused(true)}
-          onBlur={e => { setFocused(false); setHasValue(e.target.value.length > 0); }}
-          style={{ ...inputStyles, resize: "none" }}
-        />
-      ) : (
-        <input
-          name={name}
-          type={type}
-          required={required}
-          onFocus={() => setFocused(true)}
-          onBlur={e => { setFocused(false); setHasValue(e.target.value.length > 0); }}
-          style={inputStyles}
-        />
-      )}
-      <motion.label
-        animate={{
-          y: isUp ? (textarea ? -12 : -10) : (textarea ? 18 : 0),
-          x: isUp ? 0 : 0,
-          scale: isUp ? 0.85 : 1,
-          color: isUp ? (focused ? "#00d4ff" : "rgba(255,255,255,0.5)") : "rgba(255,255,255,0.3)",
-        }}
-        style={{
-          position: "absolute", left: 16,
-          top: textarea ? 0 : "50%",
-          transform: textarea ? "none" : "translateY(-50%)",
-          pointerEvents: "none",
-          letterSpacing: "0.05em", textTransform: "uppercase",
-          fontFamily: "monospace",
-          transformOrigin: "left center",
-          zIndex: 1,
-        }}
+    <div className="relative mb-6 group">
+      <motion.div
+        animate={error ? { x: [-5, 5, -5, 5, 0] } : {}}
+        className={`relative overflow-hidden rounded-2xl border transition-all duration-500 ${
+          error ? "border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.2)]" : 
+          focused ? "border-cyan-400 shadow-[0_0_20px_rgba(0,212,255,0.15)]" : "border-white/10"
+        } bg-white/[0.03] backdrop-blur-md`}
       >
-        {label}
-      </motion.label>
+        {textarea ? (
+          <textarea
+            name={name} rows={4} required
+            onFocus={() => setFocused(true)}
+            onBlur={(e) => { setFocused(false); setHasValue(e.target.value.length > 0); }}
+            className="w-full bg-transparent px-5 pt-8 pb-3 text-white outline-none resize-none font-light tracking-wide"
+          />
+        ) : (
+          <input
+            name={name} type={type} required
+            onFocus={() => setFocused(true)}
+            onBlur={(e) => { setFocused(false); setHasValue(e.target.value.length > 0); }}
+            className="w-full bg-transparent px-5 pt-8 pb-3 text-white outline-none font-light tracking-wide"
+          />
+        )}
+        <motion.label
+          initial={false}
+          animate={{
+            y: (focused || hasValue) ? -18 : 0,
+            scale: (focused || hasValue) ? 0.75 : 1,
+            color: error ? "#ef4444" : (focused || hasValue) ? "#00d4ff" : "rgba(255,255,255,0.4)"
+          }}
+          className="absolute left-5 top-5 pointer-events-none origin-left font-medium tracking-wide text-sm"
+        >
+          {label}
+        </motion.label>
+      </motion.div>
     </div>
   );
 }
 
-// ── Contact Link Card ──────────────────────────────────────────
-function ContactCard({ icon, label, value, href, accent }: {
-  icon: React.ReactNode; label: string; value: string; href: string; accent: string;
-}) {
-  const [hovered, setHovered] = useState(false);
-
+// ─── 3. Contact Card (Reimagined) ─────────────────────────────
+function ContactCard({ icon, label, value, href, accent }: any) {
   return (
-    <MagneticBtn href={href} style={{ width: "100%" }}>
-      <motion.div
-        onHoverStart={() => setHovered(true)}
-        onHoverEnd={() => setHovered(false)}
-        animate={{
-          background: hovered ? `rgba(${accent},0.08)` : "rgba(255,255,255,0.02)",
-          borderColor: hovered ? `rgba(${accent},0.3)` : "rgba(255,255,255,0.07)",
-        }}
-        style={{
-          width: "100%", padding: "16px 18px",
-          borderRadius: 16, border: "1px solid rgba(255,255,255,0.07)",
-          display: "flex", alignItems: "center", gap: 14,
-          cursor: "pointer", transition: "all 0.3s",
-        }}
-      >
-        <div style={{
-          width: 40, height: 40, borderRadius: 10,
-          background: hovered ? `rgba(${accent},0.2)` : "rgba(255,255,255,0.05)",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          fontSize: 18, color: hovered ? `rgb(${accent})` : "rgba(255,255,255,0.5)",
-          flexShrink: 0,
-        }}>{icon}</div>
-        <div style={{ flex: 1, overflow: "hidden" }}>
-          <div style={{ fontSize: 9, color: `rgba(${accent},0.8)`, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 2 }}>{label}</div>
-          <div style={{ fontSize: 13, color: hovered ? "#fff" : "rgba(255,255,255,0.6)", fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{value}</div>
-        </div>
-      </motion.div>
-    </MagneticBtn>
-  );
-}
-
-// ── Send Button ────────────────────────────────────────────────
-function SendButton({ loading, sent }: { loading: boolean; sent: boolean }) {
-  return (
-    <motion.button
-      type="submit"
-      disabled={loading || sent}
-      whileHover={!loading && !sent ? { scale: 1.02 } : {}}
-      whileTap={!loading && !sent ? { scale: 0.98 } : {}}
-      style={{
-        width: "100%", padding: "16px", borderRadius: 14, border: "none",
-        background: sent ? "#10b981" : "linear-gradient(90deg, #00d4ff, #0099cc)",
-        color: "#fff", fontSize: 13, fontWeight: 700, cursor: loading || sent ? "not-allowed" : "pointer",
-        textTransform: "uppercase", letterSpacing: "0.1em", position: "relative",
-      }}
+    <motion.a
+      href={href} target="_blank" rel="noreferrer"
+      whileHover={{ y: -5, scale: 1.02 }}
+      className="p-5 rounded-3xl bg-white/[0.02] border border-white/5 flex items-center gap-5 transition-all hover:bg-white/[0.05] hover:border-white/20 group"
     >
-      {loading ? "Sending..." : sent ? "✓ Message Sent" : "Send Message →"}
-    </motion.button>
+      <div 
+        style={{ background: `rgba(${accent}, 0.1)`, color: `rgb(${accent})` }}
+        className="w-12 h-12 rounded-2xl flex items-center justify-center text-xl shadow-lg group-hover:shadow-cyan-500/20 transition-all"
+      >
+        {icon}
+      </div>
+      <div className="flex-1">
+        <p className="text-[10px] uppercase tracking-[0.2em] text-white/30 mb-0.5">{label}</p>
+        <p className="text-sm font-semibold text-white/90 group-hover:text-cyan-400 transition-colors">{value}</p>
+      </div>
+    </motion.a>
   );
 }
 
-// ── Main Section ───────────────────────────────────────────────
+// ─── MAIN COMPONENT ──────────────────────────────────────────
 export default function ContactSection() {
-  const sectionRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
-  const inView = useInView(sectionRef, { once: true, margin: "-100px" });
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-  
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
+  const [errors, setErrors] = useState<any>({});
 
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 768);
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    const handleMouse = (e: MouseEvent) => { mouseX.set(e.clientX); mouseY.set(e.clientY); };
-    window.addEventListener("mousemove", handleMouse);
-    return () => {
-      window.removeEventListener("resize", handleResize);
-      window.removeEventListener("mousemove", handleMouse);
-    };
-  }, []);
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: any) => {
     e.preventDefault();
-    setLoading(true);
+    setErrors({});
     const data = new FormData(formRef.current!);
+    const newErrors: any = {};
+
+    if (!data.get("name")) newErrors.name = true;
+    if (!data.get("email") || !/^\S+@\S+\.\S+$/.test(data.get("email") as string)) newErrors.email = true;
+    if (!data.get("message")) newErrors.message = true;
+
+    if (Object.keys(newErrors).length) return setErrors(newErrors);
+
+    setLoading(true);
     try {
-      const res = await fetch(CONFIG.formEndpoint, { method: "POST", body: data, headers: { Accept: "application/json" } });
-      if (res.ok) { setSent(true); formRef.current?.reset(); }
-    } catch (err) { console.error(err); } finally { setLoading(false); }
+      const res = await fetch(CONFIG.formEndpoint, { method: "POST", body: data, headers: { "Accept": "application/json" } });
+      if (res.ok) {
+        setSent(true);
+        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#00d4ff', '#ffffff', '#22c55e'] });
+      }
+    } catch {
+      alert("Error sending transmission.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const contacts = [
-    { icon: "✉", label: "Email", value: CONFIG.email, href: `mailto:${CONFIG.email}`, accent: "0,212,255" },
-    { icon: "✆", label: "WhatsApp", value: CONFIG.phone, href: CONFIG.whatsapp, accent: "16,185,129" },
-    { icon: "in", label: "LinkedIn", value: "ahmed-osama", href: CONFIG.linkedin, accent: "59,130,246" },
-  ];
-
   return (
-    <section ref={sectionRef} style={{ minHeight: "100vh", background: "#020617", position: "relative", overflow: "hidden", display: "flex", flexDirection: "column", padding: isMobile ? "60px 20px" : "100px 8vw", justifyContent: "center" }}>
+    <section className="min-h-screen bg-[#020617] relative py-24 px-6 md:px-[8vw] overflow-hidden flex items-center snap-start">
       
-      {/* Background Decorative Elements */}
-      <div style={{ position: "absolute", inset: 0, backgroundImage: `radial-gradient(circle at 50% 50%, rgba(0,212,255,0.03) 0%, transparent 70%)`, pointerEvents: "none" }} />
-      <div style={{ position: "absolute", inset: 0, backgroundImage: `linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px)`, backgroundSize: "50px 50px", maskImage: "radial-gradient(circle, black, transparent)", pointerEvents: "none" }} />
-
-      {/* Watermark */}
-      <div style={{ position: "absolute", bottom: -20, right: -20, fontSize: isMobile ? 80 : 200, fontWeight: 900, color: "rgba(255,255,255,0.015)", userSelect: "none", zIndex: 0 }}>CONTACT</div>
-
-      <div style={{ maxWidth: 1200, margin: "0 auto", width: "100%", zIndex: 10 }}>
-        
-        {/* Header */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={inView ? { opacity: 1, y: 0 } : {}} style={{ marginBottom: isMobile ? 40 : 60, textAlign: isMobile ? "left" : "center" }}>
-          <h2 style={{ fontSize: isMobile ? 32 : 64, fontWeight: 900, color: "#fff", lineHeight: 1.1, marginBottom: 15 }}>
-            Let's Start a <span style={{ color: "#00d4ff" }}>Project</span>
-          </h2>
-          <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 16 }}>I'm currently available for freelance and full-time opportunities.</p>
-        </motion.div>
-
-        {/* Content Grid */}
-        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1.5fr", gap: isMobile ? 40 : 60, alignItems: "start" }}>
-          
-          {/* Info Side */}
-          <motion.div initial={{ opacity: 0, x: -30 }} animate={inView ? { opacity: 1, x: 0 } : {}} style={{ display: "flex", flexDirection: "column", gap: 15 }}>
-            <div style={{ background: "rgba(16,185,129,0.1)", color: "#10b981", padding: "8px 15px", borderRadius: 100, fontSize: 12, width: "fit-content", marginBottom: 10 }}>● Available for new work</div>
-            {contacts.map((c, i) => <ContactCard key={i} {...c} />)}
-          </motion.div>
-
-          {/* Form Side */}
-          <motion.div initial={{ opacity: 0, x: 30 }} animate={inView ? { opacity: 1, x: 0 } : {}} style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 24, padding: isMobile ? "25px" : "40px" }}>
-            {sent ? (
-              <div style={{ textAlign: "center", padding: "40px 0" }}>
-                <div style={{ fontSize: 50, marginBottom: 15 }}>✅</div>
-                <h3 style={{ color: "#fff", marginBottom: 10 }}>Sent Successfully!</h3>
-                <p style={{ color: "rgba(255,255,255,0.4)" }}>I'll get back to you within 24 hours.</p>
-                <button onClick={() => setSent(false)} style={{ marginTop: 20, background: "none", border: "1px solid #333", color: "#fff", padding: "8px 20px", borderRadius: 10, cursor: "pointer" }}>Send Another</button>
-              </div>
-            ) : (
-              <form ref={formRef} onSubmit={handleSubmit}>
-                <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: isMobile ? 0 : "0 20px" }}>
-                  <FloatInput label="Name" name="name" required />
-                  <FloatInput label="Email" name="email" type="email" required />
-                </div>
-                <FloatInput label="Subject" name="subject" required />
-                <FloatInput label="Message" name="message" required textarea />
-                <SendButton loading={loading} sent={sent} />
-              </form>
-            )}
-          </motion.div>
-        </div>
+      {/* Background Ambience */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-1/4 -left-20 w-[500px] h-[500px] bg-cyan-600/10 blur-[120px] rounded-full" />
+        <div className="absolute bottom-1/4 -right-20 w-[500px] h-[500px] bg-blue-600/10 blur-[120px] rounded-full" />
+        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: `radial-gradient(circle at 2px 2px, white 1px, transparent 0)`, backgroundSize: '40px 40px' }} />
       </div>
 
-      <footer style={{ marginTop: 80, textAlign: "center", color: "rgba(255,255,255,0.2)", fontSize: 12, borderTop: "1px solid rgba(255,255,255,0.03)", paddingTop: 30 }}>
-        © {new Date().getFullYear()} Ahmed Osama · All Rights Reserved
-      </footer>
+      <div className="max-w-7xl mx-auto w-full relative z-10">
+        <div className="grid lg:grid-cols-2 gap-20 items-center">
+          
+          {/* Info Side */}
+          <motion.div initial={{ opacity: 0, x: -50 }} whileInView={{ opacity: 1, x: 0 }}>
+            <motion.div initial={{ width: 0 }} whileInView={{ width: 80 }} className="h-1 bg-cyan-400 mb-8 rounded-full" />
+            <h2 className="text-6xl md:text-8xl font-black text-white leading-[0.9] tracking-tighter mb-12">
+              LET'S BUILD <br /> 
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-white to-blue-500 animate-gradient-x">
+                SOMETHING
+              </span> <br /> 
+              ICONIC.
+            </h2>
+            
+            <div className="space-y-4 max-w-md">
+              <ContactCard icon="✉" label="Email" value={CONFIG.email} href={`mailto:${CONFIG.email}`} accent="0,212,255" />
+              <div className="grid grid-cols-2 gap-4">
+                <ContactCard icon="📸" label="Instagram" value="Ahmed" href={CONFIG.instagram} accent="225,48,108" />
+                <ContactCard icon="in" label="LinkedIn" value="Osama" href={CONFIG.linkedin} accent="0,119,181" />
+              </div>
+              <ContactCard icon="✆" label="WhatsApp" value={CONFIG.phone} href={CONFIG.whatsapp} accent="37,211,102" />
+            </div>
+          </motion.div>
+
+          {/* Form Side with 3D Tilt */}
+          <InteractiveWrapper>
+            <motion.div 
+              initial={{ opacity: 0, y: 50 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              className="bg-white/[0.01] border border-white/10 backdrop-blur-2xl p-8 md:p-12 rounded-[2.5rem] shadow-2xl relative overflow-hidden"
+              style={{ transformStyle: "preserve-3d" }}
+            >
+              <AnimatePresence mode="wait">
+                {sent ? (
+                  <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-center py-20">
+                    <div className="text-7xl mb-6">🚀</div>
+                    <h3 className="text-3xl font-black text-white mb-3 tracking-tight">TRANSMISSION SENT!</h3>
+                    <p className="text-white/40 text-sm mb-10">I'll get back to you in light speed, Ahmed.</p>
+                    <button onClick={() => setSent(false)} className="text-[10px] uppercase tracking-[0.3em] text-cyan-400 font-bold border border-cyan-400/30 px-8 py-4 rounded-full hover:bg-cyan-400 hover:text-black transition-all">Send Another</button>
+                  </motion.div>
+                ) : (
+                  <form ref={formRef} onSubmit={handleSubmit} noValidate className="relative z-10" style={{ transform: "translateZ(50px)" }}>
+                    <div className="mb-10">
+                      <h4 className="text-white font-bold text-2xl tracking-tight">Send a Message</h4>
+                      <p className="text-white/30 text-xs mt-2 font-light">Available for freelance and new opportunities.</p>
+                    </div>
+
+                    <UltraInput name="name" label="Full Name" error={errors.name} />
+                    <UltraInput name="email" label="Email Address" type="email" error={errors.email} />
+                    <UltraInput name="message" label="Project Details / Vision" textarea error={errors.message} />
+
+                    <motion.button
+                      whileHover={{ scale: 1.02, boxShadow: "0 20px 40px rgba(0,212,255,0.25)" }}
+                      whileTap={{ scale: 0.98 }}
+                      disabled={loading}
+                      className="w-full py-5 rounded-2xl bg-cyan-400 text-black font-black text-xs uppercase tracking-[0.25em] shadow-lg disabled:opacity-50 transition-all cursor-pointer"
+                    >
+                      {loading ? "Transmitting..." : "Initiate Contact"}
+                    </motion.button>
+                  </form>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          </InteractiveWrapper>
+        </div>
+      </div>
     </section>
   );
 }
