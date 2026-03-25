@@ -92,13 +92,23 @@ export default function AboutPage() {
     { value: 1, suffix: "yr", label: "Experience", icon: "◉" },
     { value: 20, suffix: "k+", label: "Lines of Code", icon: "▲" },
   ];
-
-  const values = [
-    { title: "Clean Code", desc: "Every line must be readable. Code is read more than it's written.", icon: "⌨" },
-    { title: "Attention to Detail", desc: "The magic happens in the smallest pixels and animations.", icon: "◎" },
-    { title: "Always Learning", desc: "Technology evolves, and I'm always first in line to level up.", icon: "∞" },
+const values = [
+    { 
+      title: "Clean Code", 
+      desc: "Every line must be readable. Code is read more than it's written.", 
+      icon: " < /> " // أيقونة كود صريحة بدل الكيبورد
+    },
+    { 
+      title: "Attention to Detail", 
+      desc: "The magic happens in the smallest pixels and animations.", 
+      icon: " ◈ " // أيقونة تركيز (Focus) أشيك بكتير
+    },
+    { 
+      title: "Always Learning", 
+      desc: "Technology evolves, and I'm always first in line to level up.", 
+      icon: " ✦ " // أيقونة شرارة أو تطور (Sparkle) لايقة مع السماوي
+    },
   ];
-
   return (
     <main ref={containerRef} style={{ background: "#050810", minHeight: "100vh", color: "#fff", overflowX: "hidden", position: "relative", paddingBottom: 100 }}>
       
@@ -219,3 +229,44 @@ export default function AboutPage() {
     </main>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
