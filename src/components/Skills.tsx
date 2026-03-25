@@ -184,7 +184,15 @@ function SkillOrb({ skill, index, isActive, onHover, mouseX, mouseY }: SkillOrbP
 }
 
 function ParticleField() {
-  const particles = Array.from({ length: 50 }, (_, i) => ({
+  const [mounted, setMounted] = useState(false);
+  
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null; 
+
+  const particles = Array.from({ length: 30 }, (_, i) => ({
     id: i,
     x: Math.random() * 100,
     y: Math.random() * 100,
