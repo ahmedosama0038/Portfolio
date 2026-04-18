@@ -1,10 +1,11 @@
 "use client";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-
 const PROJECTS = [
   {
-    id: 1, title: "FreshCart", category: "E-Commerce",
+    id: 1, 
+    title: "FreshCart", 
+    category: "E-Commerce",
     description: "Full-stack e-commerce with SSR, Redux cart, and Apple-like animations.",
     tech: ["Next.js 14", "Redux", "Tailwind"],
     github: "https://github.com/ahmedosama0038/FreshCart.git",
@@ -13,7 +14,9 @@ const PROJECTS = [
     accent: "#00d4ff",
   },
   {
-    id: 2, title: "Movie App", category: "Entertainment",
+    id: 2, 
+    title: "Movie App", 
+    category: "Entertainment",
     description: "React movie discovery app powered by TMDB API with auth flow.",
     tech: ["React", "Bootstrap", "Formik"],
     github: "https://github.com/ahmedosama0038/movie-app.git",
@@ -22,16 +25,21 @@ const PROJECTS = [
     accent: "#00d4ff",
   },
   {
-    id: 3, title: "LinKyra", category: "Social Media",
-    description: "Social networking platform with token auth and Zod validation.",
+    id: 3, 
+    title: "LinKyra", 
+    category: "Social Media",
+    // التعديل هنا يا هندسة: ضفنا اللينك وبدلنا الـ null
+    description: "Social networking platform with token auth, real-time notifications, and Zod validation.",
     tech: ["React", "Tailwind", "Hero UI"],
     github: "https://github.com/ahmedosama0038/LinKyra.git",
-    demo: "https://lin-kyra.vercel.app",
+    demo: "https://lin-kyra.vercel.app", 
     image: "https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?q=80&w=1000",
     accent: "#00d4ff",
   },
   {
-    id: 4, title: "Yummy", category: "Food & Recipes",
+    id: 4, 
+    title: "Yummy", 
+    category: "Food & Recipes",
     description: "Vanilla JS recipe app with dynamic search and ingredient details.",
     tech: ["JavaScript", "Bootstrap", "API"],
     github: "https://github.com/ahmedosama0038/YUMMY.git",
