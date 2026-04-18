@@ -26,7 +26,7 @@ const PROJECTS = [
     description: "Social networking platform with token auth and Zod validation.",
     tech: ["React", "Tailwind", "Hero UI"],
     github: "https://github.com/ahmedosama0038/LinKyra.git",
-    demo: null,
+    demo: "https://linkyra.vercel.app",
     image: "https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?q=80&w=1000",
     accent: "#00d4ff",
   },
